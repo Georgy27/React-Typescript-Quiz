@@ -16,7 +16,14 @@ const useQuiz = () => {
   const [questions, setQuestions] = useState<QuestionsResponse[]>([]);
   const [index, setIndex] = useState<number>(0);
   const [correct, setCorrect] = useState<number>(0);
+  const [fetching, isFetching] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
+  const [errorMsg, setErrorMSg] = useState<string>("");
+  const [quiz, setQuiz] = useState({
+    amount: 10,
+    category: "sports",
+    difficulty: "easy",
+  });
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
@@ -48,25 +55,51 @@ const useQuiz = () => {
     setIsModalOpen(false);
   };
 
+  const handleChange = (
+    e:
+      | React.ChangeEvent<HTMLInputElement>
+      | React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const name = e.target.name;
+    const value = e.target.value;
+    setQuiz({ ...quiz, [name]: value });
+  };
+
+  const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    isFetching(true);
+  };
+
   useEffect(() => {
-    setLoading(true);
-    setWaiting(false);
-    fetchQuestions()
-      .then((data) => {
-        console.log(data);
-        if (data.length > 0) {
-          setQuestions(data);
-          setLoading(false);
-          setError(false);
-        } else {
+    if (!fetching) return;
+    if (fetching) {
+      setLoading(true);
+      setWaiting(false);
+      const { amount, category, difficulty } = quiz;
+      fetchQuestions(amount, category, difficulty)
+        .then((data) => {
+          console.log(data);
+          if (data.length > 0) {
+            setQuestions(data);
+            setLoading(false);
+            setError(false);
+            setErrorMSg("");
+            isFetching(false);
+          } else {
+            setWaiting(true);
+            setError(true);
+            setErrorMSg(
+              "can't generate questions, please try different options"
+            );
+          }
+        })
+        .catch((err) => {
           setWaiting(true);
           setError(true);
-        }
-      })
-      .catch((err) => {
-        setWaiting(true);
-      });
-  }, []);
+          setErrorMSg(err.message);
+        });
+    }
+  }, [fetching, quiz]);
 
   return {
     waiting,
@@ -75,10 +108,15 @@ const useQuiz = () => {
     index,
     correct,
     error,
+    errorMsg,
     isModalOpen,
     nextQuestion,
     checkAnswer,
     closeModal,
+    handleChange,
+    handleSubmit,
+    quiz,
+    fetching,
   };
 };
 

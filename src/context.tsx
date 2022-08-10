@@ -1,13 +1,5 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useContext } from "react";
 import useQuiz from "./hooks/useQuiz";
-
-const table = {
-  sports: 21,
-  history: 23,
-  politics: 24,
-};
-
-const API_ENDPOINT = "https://opentdb.com/api.php?";
 
 const AppContext = React.createContext<ReturnType<typeof useQuiz> | null>(null);
 
